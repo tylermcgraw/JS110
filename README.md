@@ -1,1 +1,1 @@
-Launch School's Programming Foundations with JavaScript: Intermediate
+Launch Schools Programming Foundations with JavaScript: Intermediate Course
