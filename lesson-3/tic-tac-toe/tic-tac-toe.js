@@ -8,9 +8,10 @@ const PIECES = {
 };
 const MESSAGES = {
   welcome: `\nWelcome to Tic Tac Toe!
-As my exteemed guest, you may make the first move.
 You are ${PIECES.player}'s, I am ${PIECES.computer}'s.`,
   getBoardSize: 'What size board would you like?\nI can handle nxn, where 2 < n < 10. Enter 3, 4, 9, etc: ',
+  getFirstMove: "Who moves first? (player, computer, choose, or random) ",
+  getStartingPiece: "Who goes first, me or you? (player or computer) ",
   getMove: `Where would you like to place your next ${PIECES.player}? `,
   computerMove: `My move! I think I'll go... Here!`,
   playerWin: "You Win!\n",
@@ -24,6 +25,12 @@ const VALID_RESPONSE = {
   yes: ['Yes', 'yes', 'Y', 'y'],
   no: ['No', 'no', 'N', 'n'],
   board: ['3', '4', '5', '6', '7', '8', '9'],
+  firstMove: {
+    player: 'player',
+    computer: 'computer',
+    choose: 'choose',
+    random: 'random'
+  }
 };
 
 const HORIZONTAL_GRIDLINE = function (board) {
@@ -51,23 +58,23 @@ playMatch();
 function playMatch() {
   displayWelcome();
   let boardSize = getBoardSize();
+  let firstMove = getFirstMove();
   displayRules(boardSize);
   let anotherMatch = true;
   while (anotherMatch) {
     let score = newScore();
     let anotherGame = true;
     while (anotherGame) {
-      anotherGame = playGame(score, boardSize);
+      anotherGame = playGame(score, boardSize, firstMove);
     }
     if (Object.values(score).includes(MATCH_LIMIT)) anotherMatch = playAgain();
     else anotherMatch = false;
   }
 }
 
-
-function playGame(score, boardSize) {
+function playGame(score, boardSize, firstMove) {
   let board = newBoard(boardSize);
-  let currentPiece = PIECES.player;
+  let currentPiece = getStartingPiece(firstMove);
   while (true) {
     displayBoard(board);
     makeMove(board, currentPiece);
@@ -135,6 +142,14 @@ function getBoardSize() {
   return Number(boardSize);
 }
 
+function getFirstMove() {
+  let move;
+  do {
+    move = rlSync.question(MESSAGES.getFirstMove);
+  } while (!Object.values(VALID_RESPONSE.firstMove).includes(move));
+  return move;
+}
+
 function displayRules(boardSize) {
   console.log(`Get ${boardSize} ${PIECES.player}'s in a row to win!\n
 To make a move, enter a row number (1 - ${boardSize}) followed by a column number (1 - ${boardSize}).
@@ -148,6 +163,26 @@ function newScore() {
 function updateBoard(board, piece, x, y) {
   board[x][y] = piece;
 }
+
+function getStartingPiece(firstMove) {
+  if (firstMove === VALID_RESPONSE.firstMove.player) return PIECES.player;
+  if (firstMove === VALID_RESPONSE.firstMove.computer) return PIECES.computer;
+  if (firstMove === VALID_RESPONSE.firstMove.choose) {
+    let move;
+    do {
+      move = rlSync.question(MESSAGES.getStartingPiece);
+    } while (!(VALID_RESPONSE.firstMove.player === move
+        || VALID_RESPONSE.firstMove.computer === move));
+    return move === VALID_RESPONSE.firstMove.player
+      ? PIECES.player : PIECES.computer;
+  }
+  if (firstMove === VALID_RESPONSE.firstMove.random) {
+    let move = Math.floor(Math.random() * 2);
+    return move === 0 ? PIECES.player : PIECES.computer;
+  }
+  return PIECES.player;
+}
+
 
 // Input must be a row followed by a colum, eg. 23
 function getUserMove(board) {
@@ -200,13 +235,7 @@ function getWinner(board) {
   // Check diagonals
   if (isMatching(rightDiag)) return rightDiag[0];
   if (isMatching(leftDiag)) return leftDiag[0];
-  /*
-  if (isMatching(board[0][0], board[1][1], board[2][2])) {
-    return board[0][0];
-  } else if (isMatching(board[0][2], board[1][1], board[2][0])) {
-    return board[0][2];
-  }
-    */
+
   return PIECES.empty;
 }
 
